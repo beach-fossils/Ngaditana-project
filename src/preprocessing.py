@@ -19,3 +19,6 @@ class PreProcessing:
 
     def generate_report(self):
         pass
+
+    def run_job(self):
+        pass
