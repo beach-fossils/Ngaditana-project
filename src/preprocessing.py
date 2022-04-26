@@ -18,6 +18,10 @@ class PreProcessing:
         pass
 
     def generate_report(self):
+        """
+        MultiQC
+        :return:
+        """
         pass
 
     def run_job(self):
