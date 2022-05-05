@@ -15,7 +15,7 @@ class PreProcessing:
         Returns:
             dict: dictionary containing information about newly created history
         """
-        return self.galaxy.histories.HistoryClient(name)
+        return self.histories.HistoryClient(name)
         
 
     def view_histories(self):
