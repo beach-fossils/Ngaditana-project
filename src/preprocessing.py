@@ -35,6 +35,11 @@ class PreProcessing:
         """
         return self.galaxy_instance.histories.get_histories()
 
+    def show_history(self,history_id,contents=True):
+        historyClient = HistoryClient(self.galaxy_instance)
+        return historyClient.show_history(history_id)
+
+
     def upload_data_library(self, library_id, file_local_path, folder_id=None, file_type='auto', dbkey='?'):
         """method to upload local files into data libraries in galaxy
 
@@ -63,11 +68,24 @@ class PreProcessing:
         toolClient = ToolClient(self.galaxy_instance)
         counts = toolClient.upload_file(file_local_path, history_id) #~working
         return counts
-     
 
-    def download_data(self):
+    def get_datasets(self, history_id):
+         """ method to obtain information about the datasets existing in a given history
+
+        Args:
+            history_id: id of history
+        Returns:
+            dic: dictionary containing information about newly updated file in history
+        """
+
+         return self.galaxy_instance.datasets.get_datasets(history_id)
+
+    def download_data(self, dataset_id, file_path = None, use_default_filename=True, require_ok_state=True, maxwait=12000):
         #bioblend.galaxy.datasets.DatasetClient(self.galaxy_instance).download_dataset()
+        #download_dataset(dataset_id, file_path=None, use_default_filename=True, require_ok_state=True, maxwait=12000
+        #
         pass
+
 
     def generate_report(self, history_id, tool_inputs):
         """MultiQC is the tool used to perform the task. 
@@ -107,30 +125,45 @@ class PreProcessing:
         """
         return self.galaxy_instance.libraries.create_folder(library_id, folder_name, description=None, base_folder_id=None)
 
-
-    def fastqc(self, history_id, tool_inputs):
+    def fastqc(self, history_id, id_dataset):
         """method to use the tool fastqc
 
         Args:
-            history_id (str): id of history where the tool will be used
-            tool_inputs (str): files to be used to run the desired tool
+            history_id (str): id of history where the we want to run the tool
+            id_dataset (str): id of dataset with files to upload to run the tool
 
         Returns:
             dic: dictionary containing basic information about the used tool
         """
         tool_id = self.galaxy_instance.tools.show_tool("fastqc")["id"]
-        return self.galaxy_instance.tools.run_tool(history_id, tool_id, tool_inputs)
 
-    def star(self, history_id, tool_inputs):
-        """method to use the tool star
+        return self.galaxy_instance.tools.run_tool(history_id, id_dataset, tool_id, {"": id_dataset})
+
+    def rna_star(self, history_id, id_dataset):
+        """method to use the tool rna_star
 
         Args:
             history_id (str): id of history where the tool will be used
-            tool_inputs (str): files to be used to run the desired tool
+            id_dataset (str): id of dataset with files to upload to run the tool
 
         Returns:
             dic: dictionary containing basic information about the used tool
         """
-        tool_id = self.galaxy_instance.tools.show_tool("star")["id"]
-        return self.galaxy_instance.tools.run_tool(history_id, tool_id, tool_inputs)
+        tool_id = self.galaxy_instance.tools.show_tool("rna_star")["id"]
+        return self.galaxy_instance.tools.run_tool(history_id, tool_id, {'genomeFastaFiles': id_dataset})
+
+
+    #def tool_params(self,tool_id):
+    #    toolClient = ToolClient(galaxy_instance)
+    #    toolPanels = toolClient.get_tool_panel()
+    #    for toolPanel in toolPanels:
+    #        tools = toolPanel['elems']
+    #    for tool in tools:
+    #        toolShow = toolClient.show_tool(tool_id=tool['id'], io_details=True)
+    #    inputParams = toolShow['inputs']
+    #    return inputParams
+
+
+
+    
 
