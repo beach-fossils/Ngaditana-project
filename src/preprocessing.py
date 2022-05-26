@@ -3,16 +3,16 @@ import pprint
 
 from bioblend import galaxy
 from bioblend.galaxy.histories import HistoryClient
-from bioblend.galaxy.tools import ToolClient
 
 
-class PreProcessing: 
+class PreProcessing:
     def __init__(self, galaxy_instance: galaxy.GalaxyInstance, data_directory: str = os.getcwd()):
         self.galaxy_instance = galaxy_instance
         self.data_directory = data_directory
         self.current_history = None
 
-    def print(self, content):
+    @staticmethod
+    def print(content):
         pprint.pprint(content)
 
     def create_history(self, name=None):
@@ -31,7 +31,7 @@ class PreProcessing:
             return hi
 
         # return self.galaxy_instance.histories.create_history(name)
-        
+
     def view_histories(self):
         """method to visualize the current histories in account
 
@@ -153,42 +153,65 @@ class PreProcessing:
             dic: dictionary containing basic information about the used tool
         """
         tool_id = self.galaxy_instance.tools.show_tool("fastqc")["id"]
-
-        return self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, {"": id_dataset})
+        inputs = {'adapters': None,
+                  'contaminants': None,
+                  'input_file': {'values': [{'id': id_dataset,
+                                             'src': 'hda'}]},
+                  'kmers': '7',
+                  'limits': None,
+                  'min_length': '',
+                  'nogroup': 'false'}
+        return self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, inputs)
 
     def rna_star(self, tool_params=None, history_id=None):
         """method to use the tool rna_star
 
         Args:
             history_id (str): id of history where the tool will be used
-            id_dataset (str): id of dataset with files to upload to run the tool
-
+            tool_params (dict, optional): parameters to be used in the tool. Defaults to None.  If not provided, the default parameters will be used.
         Returns:
             dic: dictionary containing basic information about the used tool
         """
         if tool_params is None:
-            tool_params = {}
+            inputs = {}
+        else:
+            inputs = {"singlePaired|sPaired": tool_params['SinglePaired'],
+                      "singlePaired|input1": {"values": [{"id": tool_params['input1'], "src": "hda"}]},
+                      "singlePaired|input2": {"values": [{"id": tool_params['input2'], "src": "hda"}]},
+                      "refGenomeSource|geneSource": "history",
+                      "genomeFastaFiles": {"values": [{"id": tool_params['FASTAfile'], "src": "hda"}]},
+                      "refGenomeSource|genomeSAindexNbases": tool_params['genomeSAindexNbases'],
+                      "refGenomeSource|GTFconditional|GTFselect": "with-gtf",
+                      "refGenomeSource|sjdbGTFfile": {"values": [{"id": tool_params["GTFfile"], "src": "hda"}]}
+                      }
         tool_id = self.galaxy_instance.tools.show_tool("rna_star")["id"]
-        return self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, tool_params)
+        return self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, inputs)
 
-    def tool_params(self, tool_id):
-        tool_show = self.galaxy_instance.tools.show_tool(tool_id=tool_id, io_details=True)
-        input_params = tool_show['inputs']
+    def tool_params(self, tool_id: str, history_id: str = None):
+        """
+        method to get the parameters of a tool
+        :param tool_id: id of the tool to get the parameters
+        :param history_id: id of the history where the tool will be used
+        :return: dictionary with the parameters of the tool
+        """
+        tool_show = self.galaxy_instance.tools.build(tool_id=tool_id, history_id=str(history_id or self.current_history))
+        input_params = tool_show['state_inputs']
         self.print(input_params)
         return input_params
 
     def get_histories(self, **kwargs):
         """
-
+        Returns a list of dictionaries containing information about all histories.
         :return:
         """
         return self.galaxy_instance.histories.get_histories(**kwargs)
 
     def get_job_status(self, job_query, history_id=None):
         """
-
-        :param job:
-        :return:
+        Method to get the status of a job (running, ok, error, etc).
+        :param  job_query: job_id or job_name
+        :param  history_id: history_id where the job is located
+        :return: job_status  (str)
         """
         job_id = job_query['jobs'][0]['id']
         jobs = self.galaxy_instance.jobs.get_jobs(history_id=str(history_id or self.current_history))
@@ -198,3 +221,4 @@ class PreProcessing:
                 self.print(state)
                 return state
         self.print('Job not found!')
+        return None
