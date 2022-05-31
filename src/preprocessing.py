@@ -2,6 +2,7 @@ import os
 import pprint
 
 from bioblend import galaxy
+from bioblend.galaxy.datasets import DatasetClient
 from bioblend.galaxy.histories import HistoryClient
 
 
@@ -55,7 +56,8 @@ class PreProcessing:
             dbkey (str, optional): Dbkey. Defaults to '?'.
         """
 
-        self.galaxy_instance.libraries.upload_file_from_local_path(library_id, file_local_path, folder_id=folder_id, file_type=file_type, dbkey=dbkey)
+        self.galaxy_instance.libraries.upload_file_from_local_path(library_id, file_local_path, folder_id=folder_id,
+                                                                   file_type=file_type, dbkey=dbkey)
         # gi.libraries.upload_file_from_local_path('xxxxx', GitHub/bioinformatics-project/data/inputs/xxxx.fastq', file_type='fastq')
         # saber status?
 
@@ -68,7 +70,8 @@ class PreProcessing:
         Returns:
             dic: dictionary containing information about newly updated file in history
         """
-        counts = self.galaxy_instance.tools.upload_file(file_local_path, str(history_id or self.current_history), **kwargs)  # ~working
+        counts = self.galaxy_instance.tools.upload_file(file_local_path, str(history_id or self.current_history),
+                                                        **kwargs)  # ~working
         return counts
 
     def get_dataset(self, history_id=None, dataset_id=None):
@@ -90,7 +93,7 @@ class PreProcessing:
         """ method to obtain information about the datasets existing in a given history
 
         Args:
-        history_id: id of history
+        history_id (str): id of history
         Returns:
         dic: dictionary containing information about newly updated file in history
         """
@@ -99,11 +102,24 @@ class PreProcessing:
     def set_current_history(self, history_id):
         self.current_history = history_id
 
-    def download_data(self, dataset_id, file_path=None, use_default_filename=True, require_ok_state=True, maxwait=12000):
-        # bioblend.galaxy.datasets.DatasetClient(self.galaxy_instance).download_dataset()
-        # download_dataset(dataset_id, file_path=None, use_default_filename=True, require_ok_state=True, maxwait=12000
-        #
-        pass
+    def download_data(self, dataset_id, file_path=None, use_default_filename=True, require_ok_state=True,
+                      maxwait=12000):
+        """
+        Method to download a dataset at Galaxy.
+        :param dataset_id: dataset id of the file to be downlowded.
+        :param file_path: if this argument is given, the dataset will be downlowded to the chosen path. Otherwise,
+        the file will be saved in memory.
+        :param use_default_filename: if this parameter is True, the exported file is saved as "file_path/%s", which
+        "%s" is the name of the dataset. If False, it is assumed "file_path" contains the complete path file, inlcuding
+        the name of the file.
+        :param require_ok_state: if False, the dataset is exported even if the "status" is not 'ok'.
+        :param maxwait: maximum waiting time, in seconds, to export the file. If time is exceeded, warning
+        "DatasetTimeoutException" is thrown.
+        :return: if "file_path" is not given, returns a dictionary containing file content. Otherwise nothing will be
+        returned.
+        """
+        data_client = DatasetClient(self.galaxy_instance)
+        return data_client.download_dataset(dataset_id, file_path, use_default_filename, require_ok_state, maxwait)
 
     def generate_report(self, tool_inputs, history_id=None):
         """MultiQC is the tool used to perform the task. 
@@ -140,7 +156,8 @@ class PreProcessing:
             Returns:
                 dict: containing basic information about created folder
         """
-        return self.galaxy_instance.libraries.create_folder(library_id, folder_name, description=description, base_folder_id=base_folder_id)
+        return self.galaxy_instance.libraries.create_folder(library_id, folder_name, description=description,
+                                                            base_folder_id=base_folder_id)
 
     def fastqc(self, id_dataset, history_id=None):
         """method to use the tool fastqc
@@ -168,7 +185,8 @@ class PreProcessing:
 
         Args:
             history_id (str): id of history where the tool will be used
-            tool_params (dict, optional): parameters to be used in the tool. Defaults to None.  If not provided, the default parameters will be used.
+            tool_params (dict, optional): parameters to be used in the tool. Defaults to None.  If not provided, the
+            default parameters will be used.
         Returns:
             dic: dictionary containing basic information about the used tool
         """
@@ -194,7 +212,8 @@ class PreProcessing:
         :param history_id: id of the history where the tool will be used
         :return: dictionary with the parameters of the tool
         """
-        tool_show = self.galaxy_instance.tools.build(tool_id=tool_id, history_id=str(history_id or self.current_history))
+        tool_show = self.galaxy_instance.tools.build(tool_id=tool_id,
+                                                     history_id=str(history_id or self.current_history))
         input_params = tool_show['state_inputs']
         self.print(input_params)
         return input_params
