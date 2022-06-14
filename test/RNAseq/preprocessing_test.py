@@ -24,7 +24,7 @@ if __name__ == "__main__":
     # preprocessing.upload_data_history("inputs/toy_SRR5152513_1.fastq", file_name = 'fastq_1')
     # preprocessing.upload_data_history("inputs/toy_SRR5152513_2.fastq", file_name = 'fastq_2')
     # preprocessing.upload_data_history("inputs/genome_sequence.fasta", file_name='sequence')
-    # preprocessing.upload_data_history("inputs/genome_annotation.gff3", file_name='annotation', file_type='gff3')
+    # preprocessing.upload_data_history("inputs/annotation.gtf", file_name='annotation', file_type='gtf')
     # fastq_dataset_1 = preprocessing.get_datasets(history_id=my_history[0]['id'], name="fastq_1")
     # preprocessing.print(fastq_dataset_1)
     # fastq_dataset_2 = preprocessing.get_datasets(history_id=my_history[0]['id'], name="fastq_2")
