@@ -41,8 +41,8 @@ if __name__ == "__main__":
 
     # run tools: fastqc
     #
-    fastq_dataset_1 = preprocessing.get_dataset(history_id='77d77febf1e1394a', name="fastq_1_ng")
-    fastq_dataset_2 = preprocessing.get_datasets(history_id='77d77febf1e1394a', name="fastq_2_ng")
+    #fastq_dataset_1 = preprocessing.get_dataset(history_id='77d77febf1e1394a', name="fastq_1_ng")
+    #fastq_dataset_2 = preprocessing.get_datasets(history_id='77d77febf1e1394a', name="fastq_2_ng")
 
     # sequence = preprocessing.get_datasets(history_id=my_history[0]['id'], name="sequence")
     #annotation = preprocessing.get_datasets(history_id=my_history[0]['id'], name="annotation")
