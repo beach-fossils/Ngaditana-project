@@ -39,11 +39,20 @@ class PreProcessing:
         Returns:
             list: of dictionaries containing basic metadata, including the id and name of each history
         """
-        return self.galaxy_instance.histories.get_histories()
+        histories = self.galaxy_instance.histories.get_histories()
+        i = 1
+        for history in histories:
+            if history['deleted'] == False:
+                print(f"history {i}. {history['name']}, id: {history['id']}")
+                i += 1
 
     def show_history(self, history_id=None, contents=True):
         history_client = HistoryClient(self.galaxy_instance)
-        return history_client.show_history(str(history_id or self.current_history), contents=contents)
+        history = history_client.show_history(history_id or self.current_history, contents=contents)
+        if history['deleted'] == True:
+            print(f"History with id {history_id} has been deleted! But here are the details:{history}")
+        else:
+            print(f"History with id {history_id} has been found! Here are the details:{history}")
 
     def upload_data_library(self, library_id, file_local_path, folder_id=None, file_type='auto', dbkey='?'):
         """method to upload local files into data libraries in galaxy
