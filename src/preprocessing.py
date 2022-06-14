@@ -29,7 +29,8 @@ class PreProcessing:
             print(f"History with name {name} already exists! Please chose another name.")
         else:
             hi = self.galaxy_instance.histories.create_history(name)
-            return hi
+            if hi:
+                print(f"History with name {name} has been created! Here are the details:{hi}")
 
         # return self.galaxy_instance.histories.create_history(name)
 
@@ -48,11 +49,14 @@ class PreProcessing:
 
     def show_history(self, history_id=None, contents=True):
         history_client = HistoryClient(self.galaxy_instance)
+
         history = history_client.show_history(history_id or self.current_history, contents=contents)
-        if history['deleted'] == True:
-            print(f"History with id {history_id} has been deleted! But here are the details:{history}")
-        else:
-            print(f"History with id {history_id} has been found! Here are the details:{history}")
+        print("These files are in history:")
+        i = 1
+        for item in history:
+            print(f"file {i}. name is: {item['name']}, deleted? {item['deleted']}, dataset id: {item['id']}")
+            i += 1
+
 
     def upload_data_library(self, library_id, file_local_path, folder_id=None, file_type='auto', dbkey='?'):
         """method to upload local files into data libraries in galaxy
@@ -99,17 +103,24 @@ class PreProcessing:
             dic: dictionary containing information about newly updated file in history
         """
         history_id = str(history_id or self.current_history)
-        return self.galaxy_instance.datasets.get_datasets(history_id=history_id, **kwargs)
+        data = self.galaxy_instance.datasets.get_datasets(history_id=history_id, **kwargs)
+        i = 1
+        for dataset in data:
+            print(f"dataset {i}. name is: {dataset['name']}, deleted: {dataset['deleted']}, dataset id: {dataset['id']}, "
+                  f"created at: {dataset['create_time']}")
+            i += 1
 
-    def get_jobs(self, history_id=None):
-        """ method to obtain information about the datasets existing in a given history
+        #return self.galaxy_instance.datasets.get_datasets(history_id=history_id, **kwargs)
 
-        Args:
-        history_id (str): id of history
-        Returns:
-        dic: dictionary containing information about newly updated file in history
-        """
-        return self.galaxy_instance.jobs.get_jobs(str(history_id or self.current_history))
+#    def get_jobs(self, history_id=None):
+#        """ method to obtain information about the datasets existing in a given history
+#
+#        Args:
+#        history_id (str): id of history
+#        Returns:
+#        dic: dictionary containing information about newly updated file in history
+#        """
+#        return self.galaxy_instance.jobs.get_jobs(str(history_id or self.current_history))
 
     def set_current_history(self, history_id):
         self.current_history = history_id
