@@ -1,5 +1,4 @@
 #from reframed.io.sbml import load_cbmodel
-from mewpy.simulation import get_simulator
 
 from mewpy.omics import eFlux, GIMME
 

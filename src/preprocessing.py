@@ -76,7 +76,10 @@ class PreProcessing:
 
     def get_dataset(self, history_id=None, dataset_id=None):
         history_id = str(history_id or self.current_history)
-        return self.galaxy_instance.datasets.get_dataset(history_id=history_id, ds_id=dataset_id)
+        datasets = self.galaxy_instance.datasets.get_datasets(history_id=history_id)
+        for dataset in datasets:
+            if dataset['id'] == dataset_id:
+                return dataset
 
     def get_datasets(self, history_id=None, **kwargs):
         """ method to obtain information about the datasets existing in a given history
@@ -205,9 +208,26 @@ class PreProcessing:
         tool_id = self.galaxy_instance.tools.show_tool("rna_star")["id"]
         return self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, inputs)
 
+    def feature_counts(self, tool_params=None, history_id=None):
+        """
+        Method to use the tool feature_counts.
+        :param tool_params: parameters to be used in the tool. If not provided, the default parameters will be used.
+        :param history_id: id of history where the tool will be used
+        :return: dictionary containing basic information about the used tool
+        """
+        if tool_params is None:
+            tool_params = {}
+        inputs = {"alignment": {"values": [{"id": tool_params['input1'], "src": "hda"}]},
+                  "anno|anno_select": "history",
+                  "anno|reference_gene_sets_builtin": tool_params["GTFfile"]
+                  }
+        tool_id = self.galaxy_instance.tools.show_tool("toolshed.g2.bx.psu.edu/repos/iuc/featurecounts/featurecounts/2.0.1+galaxy2")["id"]
+        return self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, inputs)
+
+
     def tool_params(self, tool_id: str, history_id: str = None):
         """
-        method to get the parameters of a tool
+        Method to get the parameters of a tool.
         :param tool_id: id of the tool to get the parameters
         :param history_id: id of the history where the tool will be used
         :return: dictionary with the parameters of the tool
