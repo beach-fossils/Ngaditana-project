@@ -57,7 +57,6 @@ class PreProcessing:
             print(f"file {i}. name is: {item['name']}, deleted? {item['deleted']}, dataset id: {item['id']}")
             i += 1
 
-
     def upload_data_library(self, library_id, file_local_path, folder_id=None, file_type='auto', dbkey='?'):
         """method to upload local files into data libraries in galaxy
 
@@ -87,12 +86,52 @@ class PreProcessing:
                                                         **kwargs)  # ~working
         return counts
 
-    def get_dataset(self, history_id=None, dataset_id=None):
+    def get_dataset_raw(self, history_id=None, dataset_id=None, file_name=None):
+        """Method to obtain raw content of a dataset given its name or id to be used as input for another tool. This
+        can be useful to automate the process of running different tools."""
         history_id = str(history_id or self.current_history)
-        datasets = self.galaxy_instance.datasets.get_datasets(history_id=history_id)
-        for dataset in datasets:
-            if dataset['id'] == dataset_id:
-                return dataset
+        data = self.galaxy_instance.datasets.get_datasets(history_id=history_id)
+
+        if dataset_id is not None:
+            for dataset in data:
+                if dataset['id'] == dataset_id:
+                    return dataset
+        elif file_name is not None:
+            for dataset in data:
+                if dataset['name'] == file_name:
+                    return dataset
+
+    def get_dataset(self, history_id=None, dataset_id=None, file_name=None):
+        """"method to obtain information of a dataset given its name or id"""
+        history_id = str(history_id or self.current_history)
+
+        if dataset_id is not None:
+            dataset_id = str(dataset_id)
+            data = self.galaxy_instance.datasets
+            found = False
+
+            for dataset in data.get_datasets(history_id=history_id):
+                if dataset['id'] == dataset_id:
+                    print(f"information about the file with the id {dataset_id} was found!")
+                    for features in dataset:
+                        print(f"{features}: {dataset[features]}")
+                    found = True
+            if not found:
+                print(f"No dataset with id {dataset_id} was found.")
+
+        if file_name is not None:
+            file_name = str(file_name)
+            data = self.galaxy_instance.datasets
+            found = False
+
+            for dataset in data.get_datasets(history_id=history_id):
+                if dataset['name'] == file_name:
+                    print(f"information about the file with the name {file_name} was found!")
+                    for features in dataset:
+                        print(f"{features}: {dataset[features]}")
+                    found = True
+            if not found:
+                print(f"No dataset with name {file_name} was found.")
 
     def get_datasets(self, history_id=None, **kwargs):
         """ method to obtain information about the datasets existing in a given history
@@ -106,21 +145,22 @@ class PreProcessing:
         data = self.galaxy_instance.datasets.get_datasets(history_id=history_id, **kwargs)
         i = 1
         for dataset in data:
-            print(f"dataset {i}. name is: {dataset['name']}, deleted: {dataset['deleted']}, dataset id: {dataset['id']}, "
-                  f"created at: {dataset['create_time']}")
+            print(
+                f"dataset {i}. name is: {dataset['name']}, deleted: {dataset['deleted']}, dataset id: {dataset['id']}, "
+                f"created at: {dataset['create_time']}")
             i += 1
 
-        #return self.galaxy_instance.datasets.get_datasets(history_id=history_id, **kwargs)
+        # return self.galaxy_instance.datasets.get_datasets(history_id=history_id, **kwargs)
 
-#    def get_jobs(self, history_id=None):
-#        """ method to obtain information about the datasets existing in a given history
-#
-#        Args:
-#        history_id (str): id of history
-#        Returns:
-#        dic: dictionary containing information about newly updated file in history
-#        """
-#        return self.galaxy_instance.jobs.get_jobs(str(history_id or self.current_history))
+    #    def get_jobs(self, history_id=None):
+    #        """ method to obtain information about the datasets existing in a given history
+    #
+    #        Args:
+    #        history_id (str): id of history
+    #        Returns:
+    #        dic: dictionary containing information about newly updated file in history
+    #        """
+    #        return self.galaxy_instance.jobs.get_jobs(str(history_id or self.current_history))
 
     def set_current_history(self, history_id):
         self.current_history = history_id
@@ -201,7 +241,16 @@ class PreProcessing:
                   'limits': None,
                   'min_length': '',
                   'nogroup': 'false'}
-        return self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, inputs)
+
+        results = self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, inputs)
+        print(f"{results['outputs'][0]['name']} was created in history {results['outputs'][0]['history_id']} has "
+              f"id: {results['outputs'][0]['id']}")
+        print(f"{results['outputs'][1]['name']} was created in history {results['outputs'][1]['history_id']} has "
+              f"id: {results['outputs'][1]['id']}")
+        print("More information below:")
+
+        return results['outputs'][0], \
+               results['outputs'][1]
 
     def rna_star(self, tool_params=None, history_id=None):
         """method to use the tool rna_star
@@ -241,9 +290,9 @@ class PreProcessing:
                   "anno|anno_select": "history",
                   "anno|reference_gene_sets_builtin": tool_params["GTFfile"]
                   }
-        tool_id = self.galaxy_instance.tools.show_tool("toolshed.g2.bx.psu.edu/repos/iuc/featurecounts/featurecounts/2.0.1+galaxy2")["id"]
+        tool_id = self.galaxy_instance.tools.show_tool(
+            "toolshed.g2.bx.psu.edu/repos/iuc/featurecounts/featurecounts/2.0.1+galaxy2")["id"]
         return self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, inputs)
-
 
     def tool_params(self, tool_id: str, history_id: str = None):
         """
