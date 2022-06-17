@@ -4,6 +4,7 @@ import pprint
 from bioblend import galaxy
 from bioblend.galaxy.datasets import DatasetClient
 from bioblend.galaxy.histories import HistoryClient
+from bioinfokit.analys import norm, get_data
 
 
 class PreProcessing:
@@ -15,6 +16,30 @@ class PreProcessing:
     @staticmethod
     def print(content):
         pprint.pprint(content)
+
+    @staticmethod
+    def calculate_tpm(feature_counts_output, save_path, name_of_file):
+        """
+        From the results of the feature_counts tool, calculate the tpm of the genes. The file obtained in feature_counts
+        must be downloaded from the history. So it can be used as input for this method.
+        :param name_of_file: name of the file that will be saved after the calculation
+        :param save_path: path where the tpm file will be saved (local)
+        :param feature_counts_output: path to the file obtained from feature_counts
+        """
+        df = get_data(feature_counts_output).data
+
+        # make gene column as index column #confirmar isto
+        df = df.set_index('gene')
+
+        # normalize raw counts using TPM method #confirmar isto
+        nm = norm()
+        nm.tpm(df=df, gl='length')
+        tpm_df = nm.tpm_norm
+
+        # save tpm_df file locally in computer
+        complete_name = os.path.join(save_path, name_of_file)
+        tpm_df.to_csv(complete_name, sep='\t', index=True)
+        return tpm_df.head(5)
 
     def create_history(self, name=None):
         """Create a new history in galaxy, optionally setting the name. ID of history will be given!
@@ -226,7 +251,7 @@ class PreProcessing:
         """method to use the tool fastqc
 
         Args:
-            history_id (str): id of history where the we want to run the tool
+            history_id (str): id of history where to run the tool
             id_dataset (str): id of dataset with files to upload to run the tool
 
         Returns:
@@ -249,8 +274,7 @@ class PreProcessing:
               f"id: {results['outputs'][1]['id']}")
         print("More information below:")
 
-        return results['outputs'][0], \
-               results['outputs'][1]
+        return results['outputs'][0], results['outputs'][1]
 
     def rna_star(self, tool_params=None, history_id=None):
         """method to use the tool rna_star
@@ -293,19 +317,6 @@ class PreProcessing:
         tool_id = self.galaxy_instance.tools.show_tool(
             "toolshed.g2.bx.psu.edu/repos/iuc/featurecounts/featurecounts/2.0.1+galaxy2")["id"]
         return self.galaxy_instance.tools.run_tool(str(history_id or self.current_history), tool_id, inputs)
-
-    def tool_params(self, tool_id: str, history_id: str = None):
-        """
-        Method to get the parameters of a tool.
-        :param tool_id: id of the tool to get the parameters
-        :param history_id: id of the history where the tool will be used
-        :return: dictionary with the parameters of the tool
-        """
-        tool_show = self.galaxy_instance.tools.build(tool_id=tool_id,
-                                                     history_id=str(history_id or self.current_history))
-        input_params = tool_show['state_inputs']
-        self.print(input_params)
-        return input_params
 
     def get_histories(self, **kwargs):
         """

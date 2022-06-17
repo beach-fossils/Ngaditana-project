@@ -57,7 +57,8 @@ if __name__ == "__main__":
     #fastq_output_1 = preprocessing.fastqc('bbd44e69cb8906b5e555944504c5c0e2', history_id='77d77febf1e1394a')
     #fastq_output_2 = preprocessing.fastqc('bbd44e69cb8906b59b3cb69dc1cd2969', history_id='77d77febf1e1394a')#~working
     # grab the id of the generated files
-    # print(fastq_output_1)
+    #print(fastq_output_1)
+    #print(fastq_output_2)
 
     # print about fastqc ~grab ids of the generated files
     # preprocessing.print(fastq_output_1)
@@ -74,16 +75,20 @@ if __name__ == "__main__":
     # annotation = preprocessing.get_dataset_raw("77d77febf1e1394a", file_name="annotation")
     # print(annotation['id'])
 
-    # run tools: rna_star
-    # rna_star = preprocessing.rna_star(tool_params={"SinglePaired": "paired",
-    #                                     "input1": fastq_dataset_1[0]['id'],
-    #                                     "input2": fastq_dataset_2[0]['id'],
-    #                                     "FASTAfile": sequence[0]['id'],
-    #                                     "genomeSAindexNbases": "11",
-    #                                     "GTFfile": annotation[0]['id']})
 
 
-    # rna_star =  preprocessing.rna_star(tool_params={"SinglePaired": "paired",
+    #rna_star = preprocessing.rna_star(tool_params={"SinglePaired": "paired",
+    #                                        "input1": "bbd44e69cb8906b5933e8be1b873a24c", #fastq1
+    #                                        "input2": "bbd44e69cb8906b5400fadedb4c5aeca", #fastq2
+    #                                        "FASTAfile": "bbd44e69cb8906b565cde45a6ba4ef9a", #sequence
+    #                                        "genomeSAindexNbases": "11",
+    #                                        "GTFfile": "bbd44e69cb8906b5694de2059cdb746d"}, #annotation
+    #                                  history_id="77d77febf1e1394a")
+
+    #preprocessing.get_datasets("77d77febf1e1394a")
+    #preprocessing.print(preprocessing.get_dataset_raw("77d77febf1e1394a", "bbd44e69cb8906b5400fadedb4c5aeca"))
+
+    #rna_star =  preprocessing.rna_star(tool_params={"SinglePaired": "paired",
     #                                     "input1": fastq_dataset_1[0]['id'],
     #                                     "input2": fastq_dataset_2[0]['id'],
     #                                     "FASTAfile": sequence[0]['id'],
