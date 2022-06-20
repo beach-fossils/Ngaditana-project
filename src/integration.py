@@ -1,5 +1,6 @@
 from reframed.io.sbml import load_cbmodel
-from mewpy.omics import *
+from mewpy.omics.integration.eflux import eFlux
+from mewpy.omics.integration.gimme import GIMME
 
 
 class Integration:
