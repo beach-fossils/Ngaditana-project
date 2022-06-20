@@ -6,9 +6,15 @@ class Integration:
     def __init__(self, model):
         model = load_cbmodel(model, flavor='cobra')
         self.model = model
+
         if model:
             print("Model loaded")
-        #load_cbmodel(self.model, flavor='cobra')
+        else:
+            print("Model not loaded")
+
+    def __del__(self):
+        del self.model
+        print("Model deleted")
 
     def gimme(self, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9, constraints=None, parsimonious=False,
               **kwargs):
