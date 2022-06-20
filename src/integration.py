@@ -1,11 +1,13 @@
-#from reframed.io.sbml import load_cbmodel
-
-from mewpy.omics import eFlux, GIMME
+from reframed.io.sbml import load_cbmodel
+from mewpy.omics import *
 
 
 class Integration:
     def __init__(self, model):
+        model = load_cbmodel(model, flavor='cobra')
         self.model = model
+        if model:
+            print("Model loaded")
         #load_cbmodel(self.model, flavor='cobra')
 
     def gimme(self, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9, constraints=None, parsimonious=False,
