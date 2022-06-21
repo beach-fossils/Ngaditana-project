@@ -8,7 +8,7 @@ import pprint
 
 def setUp(api_key):
     gi = galaxy.GalaxyInstance(url='https://usegalaxy.org/', key=api_key)
-    return PreProcessing(galaxy_instance = gi)
+    return PreProcessing(galaxy_instance=gi)
 
 
 

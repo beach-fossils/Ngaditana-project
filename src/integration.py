@@ -1,15 +1,19 @@
+import pandas as pd
 from reframed.io.sbml import load_cbmodel
 from mewpy.omics.integration.eflux import eFlux
 from mewpy.omics.integration.gimme import GIMME
+import numpy as np
+import os
 
 
 class Integration:
     def __init__(self, model):
-        model = load_cbmodel(model, flavor='cobra')
+        model = load_cbmodel(model)
         self.model = model
 
         if model:
             print("Model loaded")
+            print(model.summary())
         else:
             print("Model not loaded")
 
@@ -31,7 +35,9 @@ class Integration:
         :param kwargs:
         :return:
         """
-
+        expr = pd.read_csv(expr)
+        expr = pd.DataFrame(expr)
+        print(expr)
         return GIMME(self.model, expr, biomass, condition, cutoff, growth_frac, constraints, parsimonious, **kwargs)
 
     def eflux(self, expr, condition=0, scale_rxn=None, scale_value=1, constraints=None, parsimonious=False,
@@ -48,6 +54,7 @@ class Integration:
         :param kwargs:
         :return:
         """
+        expr = pd.read_csv(expr, sep="\t")
         return eFlux(self.model, expr, condition, scale_rxn, scale_value, constraints, parsimonious, max_exp, **kwargs)
 
     # def simulation(self):
