@@ -8,7 +8,7 @@ import pprint
 
 def setUp(api_key):
     gi = galaxy.GalaxyInstance(url='https://usegalaxy.org/', key=api_key)
-    return PreProcessing(galaxy_instance = gi)
+    return PreProcessing(galaxy_instance=gi)
 
 
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     # the dataset method is using the dataset_id key!
     #preprocessing.get_dataset(history_id='77d77febf1e1394a', dataset_id='bbd44e69cb8906b51a4ae4ab9294c008') #~working
-    #preprocessing.get_dataset(history_id='77d77febf1e1394a', file_name='fastq_1_ng') #~working
+    preprocessing.get_dataset(history_id='77d77febf1e1394a', file_name='fastq_1_ng') #~working
     #preprocessing.get_dataset(history_id='77d77febf1e1394a', file_name='fastq_2_ng') #~working
 
     # run tools: fastqc
