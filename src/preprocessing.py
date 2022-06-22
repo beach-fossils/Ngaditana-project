@@ -1,13 +1,11 @@
 import os
 import pprint
-
 import pandas as pd
 from bioblend import galaxy
 from bioblend.galaxy.datasets import DatasetClient
 from bioblend.galaxy.histories import HistoryClient
+from bioinfokit.analys import norm, get_data
 
-
-# from bioinfokit.analys import norm, get_data
 
 class PreProcessing:
     def __init__(self, galaxy_instance: galaxy.GalaxyInstance, data_directory: str = os.getcwd()):
