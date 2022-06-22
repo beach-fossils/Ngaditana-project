@@ -1,6 +1,7 @@
 import os
 import pprint
 
+import pandas as pd
 from bioblend import galaxy
 from bioblend.galaxy.datasets import DatasetClient
 from bioblend.galaxy.histories import HistoryClient
@@ -18,7 +19,7 @@ class PreProcessing:
         pprint.pprint(content)
 
     @staticmethod
-    def calculate_tpm(feature_counts_output, save_path, name_of_file):
+    def calculate_tpm(feature_counts_output, save_path, name_of_file, gene_length):
         """
         From the results of the feature_counts tool, calculate the tpm of the genes. The file obtained in feature_counts
         must be downloaded from the history. So it can be used as input for this method.
@@ -26,18 +27,25 @@ class PreProcessing:
         :param save_path: path where the tpm file will be saved (local)
         :param feature_counts_output: path to the file obtained from feature_counts
         """
-        df = get_data(feature_counts_output).data
+        # df = get_data(feature_counts_output).data
+        df = pd.read_csv(feature_counts_output, sep='\t', header=0, index_col=0)
+
+        gene_length_df = pd.read_csv(gene_length, sep='\t', header=0, index_col=0)
+
+        df = pd.merge(df, gene_length_df, left_index=True, right_index=True)
 
         # make gene column as index column #confirmar isto
-        df = df.set_index('gene')
+        if 'gene' in df.columns:
+            df = df.set_index('gene')
 
         # normalize raw counts using TPM method #confirmar isto
         nm = norm()
-        nm.tpm(df=df, gl='length')
+        nm.tpm(df=df, gl='Length')
         tpm_df = nm.tpm_norm
 
         # save tpm_df file locally in computer
         complete_name = os.path.join(save_path, name_of_file)
+        tpm_df.columns = ["tpm"]
         tpm_df.to_csv(complete_name, sep='\t', index=True)
         return tpm_df.head(5)
 
