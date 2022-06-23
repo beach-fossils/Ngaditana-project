@@ -33,11 +33,11 @@ class PreProcessing:
 
         df = pd.merge(df, gene_length_df, left_index=True, right_index=True)
 
-        # make gene column as index column #confirmar isto
+        # make gene column as index column
         if 'gene' in df.columns:
             df = df.set_index('gene')
 
-        # normalize raw counts using TPM method #confirmar isto
+        # normalize raw counts using TPM method
         nm = norm()
         nm.tpm(df=df, gl='Length')
         tpm_df = nm.tpm_norm

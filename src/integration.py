@@ -1,4 +1,6 @@
+import mewpy.solvers
 import pandas as pd
+from mewpy.omics import ExpressionSet
 from reframed.io.sbml import load_cbmodel
 from mewpy.omics.integration.eflux import eFlux
 from mewpy.omics.integration.gimme import GIMME
@@ -7,10 +9,9 @@ import os
 
 
 class Integration:
-    def __init__(self, model):
+    def __init__(self, model, condition=None):
         model = load_cbmodel(model)
         self.model = model
-
         if model:
             print("Model loaded")
             print(model.summary())
@@ -21,29 +22,31 @@ class Integration:
         del self.model
         print("Model deleted")
 
-    def gimme(self, expr, biomass=None, condition=0, cutoff=0.25, growth_frac=0.9, constraints=None, parsimonious=False,
-              **kwargs):
+    def gimme(self, expr, condition, local_path, file_name, **kwargs):
         """
 
+        :param file_name:
+        :param local_path:
+        :param condition: list of conditions
         :param expr:
-        :param biomass:
-        :param condition:
-        :param cutoff:
-        :param growth_frac:
-        :param constraints:
-        :param parsimonious:
-        :param kwargs:
         :return:
         """
-        expr = pd.read_csv(expr)
-        expr = pd.DataFrame(expr)
-        print(expr)
-        return GIMME(self.model, expr, biomass, condition, cutoff, growth_frac, constraints, parsimonious, **kwargs)
 
-    def eflux(self, expr, condition=0, scale_rxn=None, scale_value=1, constraints=None, parsimonious=False,
+        if condition is None:
+            condition = ''
+        gimme = GIMME(self.model, expr, "e_Biomass__cytop", condition, parsimonious=True)
+
+        # save output from gimme results as csv
+        gimme.save_results(local_path, file_name)
+        return gimme
+
+    def eflux(self, expr, local_path, file_name, condition=0, scale_rxn=None, scale_value=1, constraints=None,
+              parsimonious=False,
               max_exp=None, **kwargs):
         """
 
+        :param file_name:
+        :param local_path:
         :param expr:
         :param condition:
         :param scale_rxn:
@@ -54,8 +57,11 @@ class Integration:
         :param kwargs:
         :return:
         """
-        expr = pd.read_csv(expr, sep="\t")
-        return eFlux(self.model, expr, condition, scale_rxn, scale_value, constraints, parsimonious, max_exp, **kwargs)
+        # save results from eflux as csv
+        eflux = eFlux(self.model, expr, condition, scale_rxn, scale_value, constraints, parsimonious, max_exp)
+        eflux.save_results(local_path, file_name)
+        return eflux
+
 
     # def simulation(self):
     #    # build a phenotype simulator
