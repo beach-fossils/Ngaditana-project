@@ -35,8 +35,6 @@ class Integration:
         if condition is None:
             condition = ''
         gimme = GIMME(self.model, expr, "e_Biomass__cytop", condition, parsimonious=True)
-
-        # save output from gimme results as csv
         gimme.save_results(local_path, file_name)
         return gimme
 
@@ -57,11 +55,9 @@ class Integration:
         :param kwargs:
         :return:
         """
-        # save results from eflux as csv
         eflux = eFlux(self.model, expr, condition, scale_rxn, scale_value, constraints, parsimonious, max_exp)
         eflux.save_results(local_path, file_name)
         return eflux
-
 
     # def simulation(self):
     #    # build a phenotype simulator
