@@ -1,3 +1,4 @@
+import cobra
 import mewpy.solvers
 import pandas as pd
 from mewpy.omics import ExpressionSet
@@ -10,7 +11,7 @@ import os
 
 class Integration:
     def __init__(self, model, condition=None):
-        model = load_cbmodel(model)
+        model = cobra.io.read_sbml_model(model)
         self.model = model
         if model:
             print("Model loaded")
@@ -34,11 +35,15 @@ class Integration:
 
         if condition is None:
             condition = ''
-        gimme = GIMME(self.model, expr, "e_Biomass__cytop", condition, parsimonious=True)
-        gimme.save_results(local_path, file_name)
+        identifiers = expr['Geneid'].tolist()
+        expression = expr['tpm'].to_numpy()[:, np.newaxis]
+        set_expression = ExpressionSet(identifiers, condition, expression)
+        gimme = GIMME(self.model, set_expression, "e_Biomass__cytop", condition="tpm", parsimonious=True)
+        # gimme = GIMME(self.model, expr, "e_Biomass__cytop", condition, parsimonious=True)
+        # gimme.save_results(local_path, file_name)
         return gimme
 
-    def eflux(self, expr, local_path, file_name, condition=0, scale_rxn=None, scale_value=1, constraints=None,
+    def eflux(self, expr, local_path, file_name, conditions, scale_rxn=None, scale_value=1, constraints=None,
               parsimonious=False,
               max_exp=None, **kwargs):
         """
@@ -55,8 +60,11 @@ class Integration:
         :param kwargs:
         :return:
         """
-        eflux = eFlux(self.model, expr, condition, scale_rxn, scale_value, constraints, parsimonious, max_exp)
-        eflux.save_results(local_path, file_name)
+        identifiers = expr['Geneid'].tolist()
+        expression = expr['tpm'].to_numpy()[:, np.newaxis]
+        set_expression = ExpressionSet(identifiers, conditions, expression)
+        eflux = eFlux(self.model, set_expression, conditions[0], scale_rxn, scale_value, constraints, parsimonious, max_exp)
+        # eflux.save_results(local_path, file_name)
         return eflux
 
     # def simulation(self):

@@ -110,6 +110,7 @@ if __name__ == "__main__":
     expression = expr['tpm'].to_numpy()[:, np.newaxis]
     set_expression = ExpressionSet(identifiers, conditions, expression)
     model = cobra.io.read_sbml_model("inputs/model_ngaditana.xml")
-    gimme = GIMME(model, set_expression, "e_Biomass__cytop", condition="tpm", parsimonious =True)
-    print(gimme)
-
+    # gimme = GIMME(model, set_expression, "e_Biomass__cytop", condition="tpm", parsimonious =True)
+    # print(gimme)
+    eflux  = eFlux(model, set_expression, condition="tpm", parsimonious=True)
+    print(eflux)
