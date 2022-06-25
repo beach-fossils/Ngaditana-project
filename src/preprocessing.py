@@ -1,10 +1,16 @@
 import os
 import pprint
 import pandas as pd
+from Bio import SeqIO
 from bioblend import galaxy
 from bioblend.galaxy.datasets import DatasetClient
 from bioblend.galaxy.histories import HistoryClient
 from bioinfokit.analys import norm, get_data
+import math
+import pylab as plt
+import numpy as np
+import pandas as pd
+import matplotlib.patches as patches
 
 
 class PreProcessing:
@@ -281,6 +287,9 @@ class PreProcessing:
               f"id: {results['outputs'][1]['id']}")
         print("More information below:")
 
+        # print report about the runned tool
+        print(results)
+
         return results['outputs'][0], results['outputs'][1]
 
     def rna_star(self, tool_params=None, history_id=None):
@@ -310,8 +319,9 @@ class PreProcessing:
 
     def feature_counts(self, tool_params=None, history_id=None):
         """
-        Method to use the tool feature_counts.
+        Method to use the tool FeatureCounts.
         :param tool_params: parameters to be used in the tool. If not provided, the default parameters will be used.
+        Tipically the input for FeatureCounts is a BAM file.
         :param history_id: id of history where the tool will be used
         :return: dictionary containing basic information about the used tool
         """
