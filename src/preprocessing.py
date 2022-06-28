@@ -63,7 +63,7 @@ class PreProcessing:
         Returns:
             dict: dictionary containing information about newly created history
         """
-        if self.get_histories(name='try1'):
+        if self.get_histories(name=name):
             print(f"History with name {name} already exists! Please chose another name.")
         else:
             hi = self.galaxy_instance.histories.create_history(name)

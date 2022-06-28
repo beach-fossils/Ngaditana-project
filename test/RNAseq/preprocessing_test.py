@@ -19,7 +19,7 @@ def setUp(api_key):
 
 if __name__ == "__main__":
     os.chdir("../../data/")
-    # preprocessing = setUp('b3a37dd4f27915d58f6bbcfe5b9158f2')
+    preprocessing = setUp('b3a37dd4f27915d58f6bbcfe5b9158f2')
     # preprocessing.create_history('try1')
     #my_history = preprocessing.get_histories(name='try1')
 
@@ -101,16 +101,22 @@ if __name__ == "__main__":
 
     #dataset =  preprocessing.get_dataset(history_id=my_history[0]['id'], dataset_id="bbd44e69cb8906b5235a8c7874a2590b")
     # preprocessing.feature_counts(tool_params={"input1":"bbd44e69cb8906b5235a8c7874a2590b", "GTFfile": annotation[0]['id']})
-    # preprocessing.calculate_tpm(feature_counts_output=r"C:\Users\Bisbii\Downloads\Galaxy514-[featureCounts_on_data_513_and_data_381__Counts].tabular", save_path =r"C:\Users\Bisbii\Desktop", name_of_file="tpm.tsv", gene_length=r"C:\Users\Bisbii\Downloads\Galaxy518-[featureCounts_on_data_513_and_data_381__Feature_lengths].tabular")
-    expr = pd.read_csv('inputs/tpm.tsv', sep='\t')
-    expr["Geneid"] = expr["Geneid"] + "_RA"
-    n_genes = expr.shape[0]
-    identifiers = expr['Geneid'].tolist()
-    conditions = ['tpm']
-    expression = expr['tpm'].to_numpy()[:, np.newaxis]
-    set_expression = ExpressionSet(identifiers, conditions, expression)
-    model = cobra.io.read_sbml_model("inputs/model_ngaditana.xml")
-    # gimme = GIMME(model, set_expression, "e_Biomass__cytop", condition="tpm", parsimonious =True)
-    # print(gimme)
-    eflux  = eFlux(model, set_expression, condition="tpm", parsimonious=True)
-    print(eflux)
+    files = ["wt.tsv", "nd.tsv"]
+    old_dir = os.getcwd()
+    os.chdir("../data/inputs")
+    for raw_counts in files:
+        new_name =raw_counts.replace(".tsv", "")
+        preprocessing.calculate_tpm(feature_counts_output=f"fcounts_{raw_counts}", save_path ="./", name_of_file=f"{new_name}_tpm.tsv", gene_length=f"fcounts_length_{raw_counts}")
+    os.chdir(old_dir)
+    # expr = pd.read_csv('inputs/tpm.tsv', sep='\t')
+    # expr["Geneid"] = expr["Geneid"] + "_RA"
+    # n_genes = expr.shape[0]
+    # identifiers = expr['Geneid'].tolist()
+    # conditions = ['tpm']
+    # expression = expr['tpm'].to_numpy()[:, np.newaxis]
+    # set_expression = ExpressionSet(identifiers, conditions, expression)
+    # model = cobra.io.read_sbml_model("inputs/model_ngaditana.xml")
+    # # gimme = GIMME(model, set_expression, "e_Biomass__cytop", condition="tpm", parsimonious =True)
+    # # print(gimme)
+    # eflux  = eFlux(model, set_expression, condition="tpm", parsimonious=True)
+    # print(eflux)
