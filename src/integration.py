@@ -130,13 +130,8 @@ class Integration:
                 'Mead acid', 'Dihomo-γ-linolenic acid', 'Arachidonic acid', 'Eicosapentaenoic acid', 'Docosapentaenoic '
                                                                                                      'acid',
                 'Docosahexaenoic acid', 'Methylene']
-        # PUFAS USUALLY HAVE MORE THAN 20 CARBONS
-        # search for PUFAs in the model.metabolites.formula
-        # if C20+ are in the formula, print the name, id, formula, and price
 
-        # if you have the exact name of the PUFA, you can use the following line to get the metabolite
         real_pufa = []
-        # if found append to real pufa
         
         for metabolite in self.model.metabolites:
             beg = metabolite.formula[0:3]
