@@ -9,6 +9,7 @@ import numpy as np
 import os
 from cobra.flux_analysis import flux_variability_analysis
 import re
+import csv as csv
 
 
 class Integration:
@@ -75,17 +76,31 @@ class Integration:
         # eflux.save_results(local_path, file_name)
         return eflux
 
-    def pFBA(self):
+    def pFBA(self, file_name, path):
         """
 
         :return:
         """
-        fba_solution = self.model.optimize()
         pfba_solution = cobra.flux_analysis.pfba(self.model)
 
-        return abs(fba_solution.fluxes["e_Biomass__cytop"] - pfba_solution.fluxes["e_Biomass__cytop"])
+        # save only the pfba_solution as a csv file
+        # the first row is -, fluxes, reduced_costs
+        # the first column is the reaction id
+        # the second column is the flux
+        # the third column is the reduced cost
 
-    def fva(self, fva=0.95, fraction_of_optimum=0.9, loopless=False, **kwargs):
+        # save the pfba_solution as a csv file
+        file_name = file_name + '.csv'
+        with open(os.path.join(path, file_name), 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([' ' 'fluxes' 'reduced_costs'])
+            for reaction in self.model.reactions:
+                writer.writerow([reaction.id, pfba_solution[reaction.id], pfba_solution.fluxes[reaction.id]])
+        if pfba_solution:
+            print(f"pFBA solution saved as csv file at {path}")
+        # return abs(fba_solution.fluxes["e_Biomass__cytop"] - pfba_solution.fluxes["e_Biomass__cytop"])
+
+    def fva(self, file_name, path, fva=0.95, fraction_of_optimum=0.9, loopless=False, **kwargs):
         """
 
         :param fva:
@@ -95,26 +110,35 @@ class Integration:
         :param fraction_of_optimum:
         :return:
         """
-        float(fraction_of_optimum)
+        # float(fraction_of_optimum)
         print('FVA finds the ranges of each metabolic flux at the optimum.')
-
-        print(cobra.flux_analysis.flux_variability_analysis(
-            self.model, self.model.reactions[:10], fraction_of_optimum=fraction_of_optimum))
+        # fva_solution = flux_variability_analysis(self.model, fraction_of_optimum=fraction_of_optimum,
+        # loopless=loopless)
 
         # loop_reactions = [self.model.reactions.FRD7, self.model.reactions.SUCDi]
-        reaction_list = self.model.reactions
-        flux_variability_analysis(self.model, reaction_list=reaction_list, loopless=loopless)
+        #reaction_list = self.model.reactions
+
+        fva_soltuion = flux_variability_analysis(self.model, loopless=loopless)
         # print(f'Loop reactions: {loop_reactions}')
-        print('\n')
-        print('Running FVA in summary methods')
-        print('Model summary. default fva=0.95')
-        print(self.model.summary(fva=fva))
-        print('Variability in metabolite mass balances with flux variability analysis:')
-        # search for omega-3 fatty acids
-        print(self.model.metabolites.get_by_id('omega3_fatty_acids').summary(fva=fva))
-        print(self.model.metabolites.omega.summary(fva=fva))
-        print('Variability in reaction fluxes with flux variability analysis:')
-        print(self.model.reactions.EX_pyr_c.summary(fva=fva))
+        # print('\n')
+        # print('Running FVA in summary methods')
+        # print('Model summary. default fva=0.95')
+        # print(self.model.summary(fva=fva))
+        # print('Variability in metabolite mass balances with flux variability analysis:')
+        # search for omega-3 fatty acids, example
+        # print(self.model.metabolites.get_by_id('omega3_fatty_acids').summary(fva=fva))
+        # print(self.model.metabolites.omega.summary(fva=fva))
+        # print('Variability in reaction fluxes with flux variability analysis:')
+        # print(self.model.reactions.EX_pyr_c.summary(fva=fva))
+
+        file_name = file_name + '.csv'
+        with open(os.path.join(path, file_name), 'w') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([' ' 'fluxes' 'reduced_costs'])
+            for reaction in self.model.reactions:
+                writer.writerow([reaction.id, fva_soltuion[reaction.id], fva_soltuion.fluxes[reaction.id]])
+        if fva_soltuion:
+            print(f"FVA solution saved as csv file at {path}")
 
     def biodiesel_fatty_acids(self):
         """ Method to grab the biodiesel fatty acids from the model. Usually fatty acids used in biodisel have between
@@ -126,8 +150,9 @@ class Integration:
 
         for metabolite in self.model.metabolites:
             if any(carb in metabolite.formula for carb in carbs):
-                print(f"Potential Biodiesel fatty acid: {metabolite.name}, id: {metabolite.id}, formula: {metabolite.formula}, "
-                      f" shadow price: {metabolite.shadow_price}")
+                print(
+                    f"Potential Biodiesel fatty acid: {metabolite.name}, id: {metabolite.id}, formula: {metabolite.formula}, "
+                    f" shadow price: {metabolite.shadow_price}")
 
     def pufas(self):
         """Method in construction to grab potential PUFAs from the model"""
@@ -146,7 +171,7 @@ class Integration:
 
         real_pufa = {}
         carbs = []
-        for x in range(18,100):
+        for x in range(18, 100):
             ap = 'C' + str(x)
             carbs.append(ap)
 
@@ -158,7 +183,7 @@ class Integration:
                           f"shadow price: {metabolite.shadow_price}")
 
         # if formula is smaller than 3 characters, it is not a pufa:
-        #for metabolite in self.model.metabolites:
+        # for metabolite in self.model.metabolites:
         #    if (metabolite.formula[0] == 'C') and ('2345689' in metabolite.formula[1]) and ('0123456789' in
         #                                                                                    metabolite.formula[2]):
         #        real_pufa[metabolite.name] = metabolite.formula, metabolite.shadow_price, metabolite.id
@@ -212,6 +237,6 @@ class Integration:
 
         # get the stoichometry of the metabolites in the reactions
         for metabolite in metabolites:
-            print(f"stoichmetry of {self.model.reactions.metabolites[metabolite]}, lower bound: {self.model.reactions.lower_bound},"
-                  f"upper bound: {self.model.reactions.upper_bound}")
-        
+            print(
+                f"stoichmetry of {self.model.reactions.metabolites[metabolite]}, lower bound: {self.model.reactions.lower_bound},"
+                f"upper bound: {self.model.reactions.upper_bound}")
