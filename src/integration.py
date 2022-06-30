@@ -119,39 +119,52 @@ class Integration:
     def biodiesel_fatty_acids(self):
         """ Method to grab the biodiesel fatty acids from the model. Usually fatty acids used in biodisel have between
         14 and 20 carbons """
+        carbs = []
+        for x in range(14, 21):
+            ap = 'C' + str(x)
+            carbs.append(ap)
+
         for metabolite in self.model.metabolites:
-            if 'C14' or 'C15' or 'C16' or 'C17' or 'C18' or 'C19' or 'C20' in metabolite.formula:
-                print(f"Potential biodiesel fatty acid: {metabolite.name}, id: {metabolite.id}, formula: "
-                      f"{metabolite.formula}, price: {metabolite.shadow_price}")
+            if any(carb in metabolite.formula for carb in carbs):
+                print(f"Potential Biodiesel fatty acid: {metabolite.name}, id: {metabolite.id}, formula: {metabolite.formula}, "
+                      f" shadow price: {metabolite.shadow_price}")
 
     def pufas(self):
-        """Method to grab potential PUFAs from the model"""
+        """Method in construction to grab potential PUFAs from the model"""
+
         pufa = ['Linoleic acid', 'alpha-Linolenic acid', 'gamma-Linolenic acid', 'Columbinic acid', 'Stearidonic acid',
                 'Mead acid', 'Dihomo-γ-linolenic acid', 'Arachidonic acid', 'Eicosapentaenoic acid', 'Docosapentaenoic '
                                                                                                      'acid',
-                'Docosahexaenoic acid', 'Methylene']
-
-        real_pufa = []
-        
-        for metabolite in self.model.metabolites:
-            beg = metabolite.formula[0:3]
-            
-            if any(x in metabolite.formula for x in pufa) and beg[0] =='C' and beg[1] in '23456789' and beg[2] in \
-                    '0123456789':
-                real_pufa.append(metabolite)
-                print(f"Very Potential PUFA: {metabolite.name}, id: {metabolite.id}, formula: {metabolite.formula},"
-                      f"shadow price: {metabolite.shadow_price}")
+                'Docosahexaenoic acid', 'Methylene', 'omega', 'Omega', 'fatty', 'Fatty']
 
         for metabolite in self.model.metabolites:
-            # search for C20, C21, C22, C23, C24, C25, C26, C27, C28, C29, C30 until C100 in the formula
-            beg = metabolite.formula[0:3]
-            if beg[0] == 'C' and beg[1] in '23456789' and beg[2] in '0123456789':
-                print(f"Potential PUFA: {metabolite.name}, id: {metabolite.id}, formula: {metabolite.formula}, "
-                      f"shadow price: {metabolite.shadow_price}")
-                            
-            #if re.search(r'\bC20\b', metabolite.formula):
-            #    print(f"Potential PUFA: {metabolite.name}, id: {metabolite.id}, formula: {metabolite.formula}, "
-            #          f" shadow price: {metabolite.shadow_price}")
+            for pufa_name in pufa:
+                if pufa_name in metabolite.name:
+                    print(
+                        f"VERY Potential PUFA: {metabolite.name}, id: {metabolite.id}, formula: {metabolite.formula}, "
+                        f"price: {metabolite.shadow_price}")
+
+        real_pufa = {}
+        carbs = []
+        for x in range(18,100):
+            ap = 'C' + str(x)
+            carbs.append(ap)
+
+        for metabolite in self.model.metabolites:
+            for carb in carbs:
+                if carb in metabolite.formula:
+                    real_pufa[carb] = metabolite.name
+                    print(f"Potential PUFA: {metabolite.name}, id: {metabolite.id}, formula: {metabolite.formula}, "
+                          f"shadow price: {metabolite.shadow_price}")
+
+        # if formula is smaller than 3 characters, it is not a pufa:
+        #for metabolite in self.model.metabolites:
+        #    if (metabolite.formula[0] == 'C') and ('2345689' in metabolite.formula[1]) and ('0123456789' in
+        #                                                                                    metabolite.formula[2]):
+        #        real_pufa[metabolite.name] = metabolite.formula, metabolite.shadow_price, metabolite.id
+
+        for key, value in real_pufa.items():
+            print(f"Potential PUFA: {key}, id: {value[2]}, formula: {value[0]}, price: {value[1]}")
 
     def search_for_metabolites(self, search_term):
         """Method to search for metabolites in the model"""
@@ -184,8 +197,21 @@ class Integration:
         """ Method to get the reactions that are associated with a metabolite """
         for reaction in self.model.reactions:
             if metabolite in reaction.metabolites:
-
                 print(f"{metabolite.name} is associated with {reaction.name} and has a id: {reaction.id}")
                 print(f"stoichometry of {reaction.metabolites[metabolite]}, lower bound: {reaction.lower_bound}, "
                       f"upper bound: {reaction.upper_bound}")
 
+    def get_reactions_with_terms(self, terms=['']):
+        """ Method to get the reactions that contain a list of terms """
+        metabolites = []
+        for reaction in self.model.reactions:
+            # grab the metabolites in the reaction
+            metabolites.append(reaction.metabolites)
+            if any(term in reaction.name for term in terms):
+                print(f"{reaction.id}: {reaction.name}")
+
+        # get the stoichometry of the metabolites in the reactions
+        for metabolite in metabolites:
+            print(f"stoichmetry of {self.model.reactions.metabolites[metabolite]}, lower bound: {self.model.reactions.lower_bound},"
+                  f"upper bound: {self.model.reactions.upper_bound}")
+        
