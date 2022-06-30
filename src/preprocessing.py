@@ -14,23 +14,30 @@ import matplotlib.patches as patches
 
 
 class PreProcessing:
+
     def __init__(self, galaxy_instance: galaxy.GalaxyInstance, data_directory: str = os.getcwd()):
+        """Constructor for PreProcessing class."""
         self.galaxy_instance = galaxy_instance
         self.data_directory = data_directory
         self.current_history = None
 
     @staticmethod
     def print(content):
+        """Method to print content in a more readable way
+
+        :param content: content to be printed
+        :return: printed content
+        """
         pprint.pprint(content)
 
     @staticmethod
     def calculate_tpm(feature_counts_output, save_path, name_of_file, gene_length):
         """
-        From the results of the feature_counts tool, calculate the tpm of the genes. The file obtained in feature_counts
-        must be downloaded from the history. So it can be used as input for this method.
-        :param name_of_file: name of the file that will be saved after the calculation
-        :param save_path: path where the tpm file will be saved (local)
-        :param feature_counts_output: path to the file obtained from feature_counts
+        Method to calculate TPM from feature counts output.
+        :param gene_length: path to gene length file
+        :param feature_counts_output: path to feature counts file
+        :param save_path: path to save the TPM output
+        :param name_of_file: name of the file to be saved
         """
         # df = get_data(feature_counts_output).data
         df = pd.read_csv(feature_counts_output, sep='\t', header=0, index_col=0)
@@ -55,7 +62,7 @@ class PreProcessing:
         return tpm_df.head(5)
 
     def create_history(self, name=None):
-        """Create a new history in galaxy, optionally setting the name. ID of history will be given!
+        """ Method to create a new history in Galaxy, optionally setting the name. ID of history will be given!
 
         Args:
             name (str, optional): name given to the history. Defaults to None.
@@ -73,7 +80,7 @@ class PreProcessing:
         # return self.galaxy_instance.histories.create_history(name)
 
     def view_histories(self):
-        """method to visualize the current histories in account
+        """ Method to visualize the current histories in account
 
         Returns:
             list: of dictionaries containing basic metadata, including the id and name of each history
@@ -81,11 +88,16 @@ class PreProcessing:
         histories = self.galaxy_instance.histories.get_histories()
         i = 1
         for history in histories:
-            if history['deleted'] == False:
+            if not history['deleted']:
                 print(f"history {i}. {history['name']}, id: {history['id']}")
                 i += 1
 
     def show_history(self, history_id=None, contents=True):
+        """ Method to visualize the contents of a history in Galaxy.
+        :param history_id: id of the history to be visualized
+        :param contents: if True, the contents of the history will be shown. If False, only the history metadata will be
+         shown.
+        """
         history_client = HistoryClient(self.galaxy_instance)
 
         history = history_client.show_history(history_id or self.current_history, contents=contents)
@@ -96,7 +108,7 @@ class PreProcessing:
             i += 1
 
     def upload_data_library(self, library_id, file_local_path, folder_id=None, file_type='auto', dbkey='?'):
-        """method to upload local files into data libraries in galaxy
+        """ Method to upload local files into data libraries in galaxy
 
         Args:
             library_id (str): id of the destination Data Library
@@ -112,7 +124,7 @@ class PreProcessing:
         # saber status?
 
     def upload_data_history(self, file_local_path, history_id=None, **kwargs):
-        """ method to upload a local file to certain history
+        """ Method to upload a local file to certain history in Galaxy.
 
         Args:
             file_local_path (str): path where our file is located
@@ -125,8 +137,12 @@ class PreProcessing:
         return counts
 
     def get_dataset_raw(self, history_id=None, dataset_id=None, file_name=None):
-        """Method to obtain raw content of a dataset given its name or id to be used as input for another tool. This
-        can be useful to automate the process of running different tools."""
+        """ Method to obtain raw content of a dataset given its name or id to be used as input for another tool. This
+        can be useful to automate the process of running different tools.
+        :param history_id: id of the history where the dataset is located
+        :param dataset_id: id of the dataset
+        :param file_name: name of the file/dataset
+        """
         history_id = str(history_id or self.current_history)
         data = self.galaxy_instance.datasets.get_datasets(history_id=history_id)
 
@@ -140,7 +156,10 @@ class PreProcessing:
                     return dataset
 
     def get_dataset(self, history_id=None, dataset_id=None, file_name=None):
-        """"method to obtain information of a dataset given its name or id"""
+        """" Method to obtain information of a dataset given its name or id.
+        :param history_id: id of the history where the dataset is located
+        :param dataset_id: id of the dataset
+        :param file_name: name of the file/dataset"""
         history_id = str(history_id or self.current_history)
 
         if dataset_id is not None:
@@ -172,7 +191,7 @@ class PreProcessing:
                 print(f"No dataset with name {file_name} was found.")
 
     def get_datasets(self, history_id=None, **kwargs):
-        """ method to obtain information about the datasets existing in a given history
+        """ Method to obtain information about the datasets existing in a given history.
 
         Args:
             history_id: id of history
@@ -201,6 +220,10 @@ class PreProcessing:
     #        return self.galaxy_instance.jobs.get_jobs(str(history_id or self.current_history))
 
     def set_current_history(self, history_id):
+        """ Method to set the current history to a given history id.
+            :param history_id: id of the history to set as current
+            """
+
         self.current_history = history_id
 
     def download_data(self, dataset_id, file_path=None, use_default_filename=True, require_ok_state=True,
@@ -238,7 +261,7 @@ class PreProcessing:
         pass
 
     def workflows(self):
-        """method to get information on the workflows currently in the account
+        """ Method to get information on the workflows currently in the account
 
         Returns:
             list: of metadata dictionaries with detail about the current workflows
@@ -261,7 +284,7 @@ class PreProcessing:
                                                             base_folder_id=base_folder_id)
 
     def fastqc(self, id_dataset, history_id=None):
-        """method to use the tool fastqc
+        """ Method to use the tool FastQC to perform quality control on a dataset through the Galaxy API.
 
         Args:
             history_id (str): id of history where to run the tool
@@ -270,6 +293,7 @@ class PreProcessing:
         Returns:
             dic: dictionary containing basic information about the used tool
         """
+
         tool_id = self.galaxy_instance.tools.show_tool("fastqc")["id"]
         inputs = {'adapters': None,
                   'contaminants': None,
@@ -293,7 +317,7 @@ class PreProcessing:
         return results['outputs'][0], results['outputs'][1]
 
     def rna_star(self, tool_params=None, history_id=None):
-        """method to use the tool rna_star
+        """ Method to use the tool rna_STAR to perform alignment of RNA-seq data through the Galaxy API.
 
         Args:
             history_id (str): id of history where the tool will be used
@@ -319,7 +343,7 @@ class PreProcessing:
 
     def feature_counts(self, tool_params=None, history_id=None):
         """
-        Method to use the tool FeatureCounts.
+        Method to use the tool FeatureCounts to perform read counting on a dataset through the Galaxy API.
         :param tool_params: parameters to be used in the tool. If not provided, the default parameters will be used.
         Tipically the input for FeatureCounts is a BAM file.
         :param history_id: id of history where the tool will be used
@@ -337,17 +361,17 @@ class PreProcessing:
 
     def get_histories(self, **kwargs):
         """
-        Returns a list of dictionaries containing information about all histories.
-        :return:
+        Method to get information about the histories in the account of the user associated to the Galaxy instance.
+        :return: list of dictionaries with information about the histories
         """
         return self.galaxy_instance.histories.get_histories(**kwargs)
 
     def get_job_status(self, job_query, history_id=None):
         """
-        Method to get the status of a job (running, ok, error, etc).
-        :param  job_query: job_id or job_name
-        :param  history_id: history_id where the job is located
-        :return: job_status  (str)
+        Method to get the status of a job through the Galaxy API.
+        :param job_query: id of the job to be checked
+        :param history_id: id of the history where the job is located
+        :return: dictionary with information about the job
         """
         job_id = job_query['jobs'][0]['id']
         jobs = self.galaxy_instance.jobs.get_jobs(history_id=str(history_id or self.current_history))
